@@ -34,6 +34,7 @@
 			var rpsKeyNum3 = parseInt(document.getElementById('rps3-key-num').value);
 			var rpsKeyNum3max = parseInt(document.getElementById('rps3-key-max').value);
 			var rpsKeyNum5 = parseInt(document.getElementById('rps5-key-num').value);
+			var rpsKeyNum10 = parseInt(document.getElementById('rps10-key-num').value);
 			var rpsKeyNum20 = parseInt(document.getElementById('rps20-key-num').value);
 			var top120Num = parseFloat(document.getElementById('key-top120-num').value);
 			var top250Num = parseFloat(document.getElementById('key-top250-num').value);
@@ -53,6 +54,9 @@
 					continue
 				}
 				if (emp.rps5 < rpsKeyNum5) {
+					continue
+				}
+				if (emp.rps10 < rpsKeyNum10) {
 					continue
 				}
 				if (emp.rps20 < rpsKeyNum20) {
@@ -135,6 +139,7 @@
 	#key-top250-num,
 	#key-top120-num,
 	#rps20-key-num,
+	#rps10-key-num,
 	#rps5-key-num,
 	#rps3-key-max,
 	#hs-key-num,
@@ -181,6 +186,8 @@
 	<div class="rps-params">
 		R5: rps5 ≥
 		<input type="text" id="rps5-key-num" value="85">
+		R10: rps10 ≥
+		<input type="text" id="rps10-key-num" value="0">
 		R20: rps20 ≥
 		<input type="text" id="rps20-key-num" value="0">
 	</div>
