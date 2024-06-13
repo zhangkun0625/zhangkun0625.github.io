@@ -67,10 +67,14 @@
     </table>
 
     <h2>图表</h2>
-    <div style="display: flex; width: 100%">
-      <canvas id="chart-15" width="300" height="200" style="flex: 1"></canvas>
-      <canvas id="chart-18" width="300" height="200" style="flex: 1"></canvas>
-      <canvas id="chart-4x10" width="300" height="200" style="flex: 1"></canvas>
+    <div style="width: 100%">
+      <canvas id="chart-15" width="100%" height="200"></canvas>
+    </div>
+    <div style="width: 100%">
+      <canvas id="chart-18" width="100%" height="200"></canvas>
+    </div>
+    <div style="width: 100%">
+      <canvas id="chart-4x10" width="100%" height="200"></canvas>
     </div>
 
     <script>
@@ -281,8 +285,8 @@
           return;
         }
 
-        // 定义一个函数来为每种产品创建图表
-        function createChartForProduct(
+        // 定义一个函数来为每种产品创建混合图表
+        function createMixedChartForProduct(
           chartId,
           productLabel,
           orderColor,
@@ -298,52 +302,98 @@
           const salesTotals = salesData.map(
             (entry) => entry[`totalSales${productLabel}`]
           );
+          const todayOrders = salesData.map(
+            (entry) => entry[`orderQuantity${productLabel}`]
+          );
+          const todaySales = salesData.map(
+            (entry) => entry[`salesQuantity${productLabel}`]
+          );
 
           new Chart(ctx, {
-            type: 'line',
+            type: 'bar', // 使用柱状图类型
             data: {
               labels: labels,
               datasets: [
                 {
+                  // 订单总量和销售总数的折线图
+                  type: 'line',
                   label: `${productLabel}寸订单总量`,
                   data: orderTotals,
                   borderColor: orderColor,
                   fill: false,
+                  yAxisID: 'y-订单总量',
                 },
                 {
+                  type: 'line',
                   label: `${productLabel}寸销售总数`,
                   data: salesTotals,
                   borderColor: salesColor,
                   fill: false,
+                  yAxisID: 'y-销售总数',
+                },
+                {
+                  // 当天订单量和销售量的柱状图
+                  type: 'bar',
+                  label: `当天${productLabel}寸订单量`,
+                  data: todayOrders,
+                  backgroundColor: orderColor,
+                },
+                {
+                  type: 'bar',
+                  label: `当天${productLabel}寸销售量`,
+                  data: todaySales,
+                  backgroundColor: salesColor,
                 },
               ],
             },
             options: {
               scales: {
                 y: {
-                  beginAtZero: true,
+                  type: 'linear', // 使用线性比例
+                  position: 'left',
+                  id: 'y-订单总量',
+                },
+                y2: {
+                  type: 'linear', // 使用线性比例
+                  position: 'right',
+                  id: 'y-销售总数',
+                  display: true,
+                  title: {
+                    display: true,
+                    text: '销售总数',
+                  },
+                },
+                x: {
+                  display: true,
+                  title: {
+                    display: true,
+                    text: '日期',
+                  },
                 },
               },
               responsive: true,
               maintainAspectRatio: false,
+              legend: {
+                display: true,
+              },
             },
           });
         }
 
-        // 为每个产品创建图表
-        createChartForProduct(
+        // 为每个产品创建混合图表
+        createMixedChartForProduct(
           'chart-15',
           '15',
           'rgb(75, 192, 192)',
           'rgb(153, 102, 255)'
         );
-        createChartForProduct(
+        createMixedChartForProduct(
           'chart-18',
           '18',
           'rgb(255, 206, 86)',
           'rgb(255, 99, 132)'
         );
-        createChartForProduct(
+        createMixedChartForProduct(
           'chart-4x10',
           '4x10',
           'rgb(54, 162, 235)',
