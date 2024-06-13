@@ -2,13 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>数据输入与可视化 - 累计订单和销售</title>
+    <title>多产品销售数据记录</title>
     <style>
       body {
         font-family: Arial, sans-serif;
-      }
-      canvas {
-        border: 1px solid black;
       }
       table,
       th,
@@ -24,7 +21,7 @@
     </style>
   </head>
   <body>
-    <h2>输入数据生成表格和曲线图</h2>
+    <h2>产品销售数据输入</h2>
     <form id="dataForm">
       日期: <input type="date" id="date" /><br />
       15寸订单量: <input type="number" id="product15OrderQty" /> 销售数:
@@ -36,8 +33,10 @@
       <button type="button" onclick="addData()">添加数据</button>
     </form>
 
-    <h3>数据表格</h3>
-    <table id="dataTable">
+    <button onclick="clearAllData()">清除所有数据</button>
+
+    <h2>产品销售数据表格</h2>
+    <table id="data-table">
       <thead>
         <tr>
           <th>日期</th>
@@ -47,70 +46,175 @@
           <th>18寸销售数</th>
           <th>4x10订单量</th>
           <th>4x10销售数</th>
+          <th>15寸订单总量</th>
+          <th>15寸销售总数</th>
+          <th>18寸订单总量</th>
+          <th>18寸销售总数</th>
+          <th>4x10订单总量</th>
+          <th>4x10销售总数</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        <!-- 数据行将被动态添加到此处 -->
+      </tbody>
     </table>
 
-    <h3>曲线图</h3>
-    <canvas id="myChart" width="800" height="400"></canvas>
-
     <script>
-      let cumulativeOrders = { '15寸': 0, '18寸': 0, '4x10': 0 };
-      let cumulativeSales = { '15寸': 0, '18寸': 0, '4x10': 0 };
+      // 存储数据的数组
+      let salesData = [];
 
+      // 从本地存储加载数据
+      window.onload = function () {
+        if (localStorage.salesData) {
+          salesData = JSON.parse(localStorage.getItem('salesData'));
+          renderTable();
+        }
+      };
+
+      // 保存数据到本地存储
+      function saveData() {
+        localStorage.setItem('salesData', JSON.stringify(salesData));
+      }
+
+      // 添加数据到表格
       function addData() {
-        const date = document.getElementById('date').value;
-        const orders = {
-          '15寸':
-            parseInt(document.getElementById('product15OrderQty').value) *
-            parseInt(document.getElementById('product15SalesQty').value),
-          '18寸':
-            parseInt(document.getElementById('product18OrderQty').value) *
-            parseInt(document.getElementById('product18SalesQty').value),
-          '4x10':
-            parseInt(document.getElementById('product4x10OrderQty').value) *
-            parseInt(document.getElementById('product4x10SalesQty').value),
+        // 收集输入数据
+        let date = document.getElementById('date').value;
+        let product15OrderQty = parseInt(
+          document.getElementById('product15OrderQty').value,
+          10
+        );
+        let product15SalesQty = parseInt(
+          document.getElementById('product15SalesQty').value,
+          10
+        );
+        let product18OrderQty = parseInt(
+          document.getElementById('product18OrderQty').value,
+          10
+        );
+        let product18SalesQty = parseInt(
+          document.getElementById('product18SalesQty').value,
+          10
+        );
+        let product4x10OrderQty = parseInt(
+          document.getElementById('product4x10OrderQty').value,
+          10
+        );
+        let product4x10SalesQty = parseInt(
+          document.getElementById('product4x10SalesQty').value,
+          10
+        );
+
+        // 计算订单总量和销售总数
+        let totals = calculateTotals();
+        salesData.push({
+          date: date,
+          orderQuantity15: product15OrderQty,
+          salesQuantity15: product15SalesQty,
+          orderQuantity18: product18OrderQty,
+          salesQuantity18: product18SalesQty,
+          orderQuantity4x10: product4x10OrderQty,
+          salesQuantity4x10: product4x10SalesQty,
+          ...totals,
+        });
+
+        // 清空输入框
+        clearInputs();
+
+        // 渲染表格并保存数据
+        renderTable();
+        saveData();
+      }
+
+      // 计算订单总量和销售总数
+      function calculateTotals() {
+        let lastEntry =
+          salesData.length > 0
+            ? salesData[salesData.length - 1]
+            : {
+                totalOrders15: 0,
+                totalSales15: 0,
+                totalOrders18: 0,
+                totalSales18: 0,
+                totalOrders4x10: 0,
+                totalSales4x10: 0,
+              };
+        return {
+          totalOrders15:
+            lastEntry.totalOrders15 +
+            (document.getElementById('product15OrderQty').valueAsNumber || 0),
+          totalSales15:
+            lastEntry.totalSales15 +
+            (document.getElementById('product15SalesQty').valueAsNumber || 0),
+          totalOrders18:
+            lastEntry.totalOrders18 +
+            (document.getElementById('product18OrderQty').valueAsNumber || 0),
+          totalSales18:
+            lastEntry.totalSales18 +
+            (document.getElementById('product18SalesQty').valueAsNumber || 0),
+          totalOrders4x10:
+            lastEntry.totalOrders4x10 +
+            (document.getElementById('product4x10OrderQty').valueAsNumber || 0),
+          totalSales4x10:
+            lastEntry.totalSales4x10 +
+            (document.getElementById('product4x10SalesQty').valueAsNumber || 0),
         };
-
-        // Update cumulative totals
-        for (let product in orders) {
-          cumulativeOrders[product] += orders[product];
-          cumulativeSales[product] += parseInt(
-            document.getElementById(`${product}SalesQty`).value
-          );
-        }
-
-        // Add to table
-        renderTable(date, orders);
-
-        // Add to chart (assuming Chart.js is included and configured)
-        renderChart();
-        document.getElementById('dataForm').reset();
       }
 
-      function renderTable(date, orders) {
+      // 清除所有数据和本地存储
+      function clearAllData() {
+        salesData = [];
+        localStorage.removeItem('salesData');
+        renderTable();
+        clearInputs();
+      }
+
+      // 清空输入框
+      function clearInputs() {
+        document.getElementById('date').value = '';
+        document.getElementById('product15OrderQty').value = '';
+        document.getElementById('product15SalesQty').value = '';
+        document.getElementById('product18OrderQty').value = '';
+        document.getElementById('product18SalesQty').value = '';
+        document.getElementById('product4x10OrderQty').value = '';
+        document.getElementById('product4x10SalesQty').value = '';
+      }
+
+      // 渲染表格
+      function renderTable() {
         const tableBody = document
-          .getElementById('dataTable')
+          .getElementById('data-table')
           .getElementsByTagName('tbody')[0];
-        const newRow = tableBody.insertRow();
-        newRow.insertCell().textContent = date;
-        for (let product in orders) {
-          const orderCell = newRow.insertCell();
-          orderCell.textContent = orders[product];
+        tableBody.innerHTML = ''; // 清空表格
 
-          const salesCell = newRow.insertCell();
-          salesCell.textContent = parseInt(
-            document.getElementById(`${product}SalesQty`).value
-          );
-        }
+        salesData.forEach((entry) => {
+          const row = tableBody.insertRow();
+          const cells = [
+            entry.date,
+            entry.orderQuantity15,
+            entry.salesQuantity15,
+            entry.orderQuantity18,
+            entry.salesQuantity18,
+            entry.orderQuantity4x10,
+            entry.salesQuantity4x10,
+            entry.totalOrders15,
+            entry.totalSales15,
+            entry.totalOrders18,
+            entry.totalSales18,
+            entry.totalOrders4x10,
+            entry.totalSales4x10,
+          ];
+          cells.forEach((text) => {
+            const cell = row.insertCell();
+            cell.textContent = text;
+          });
+        });
       }
 
-      function renderChart() {
-        // Chart.js code to update chart would go here
-      }
-
-      window.onload = renderChart; // Initialize the chart
+      // 初始化表格渲染
+      window.onload = function () {
+        renderTable();
+      };
     </script>
   </body>
 </html>
