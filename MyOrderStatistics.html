@@ -285,7 +285,6 @@
           return;
         }
 
-        // 定义一个函数来为每种产品创建混合图表
         function createMixedChartForProduct(
           chartId,
           productLabel,
@@ -314,68 +313,85 @@
             data: {
               labels: labels,
               datasets: [
+                // 订单总量和销售总数的折线图
                 {
-                  // 订单总量和销售总数的折线图
-                  type: 'line',
                   label: `${productLabel}寸订单总量`,
+                  type: 'line',
                   data: orderTotals,
                   borderColor: orderColor,
                   fill: false,
-                  yAxisID: 'y-订单总量',
+                  yAxisID: 'y-axis-order',
                 },
                 {
-                  type: 'line',
                   label: `${productLabel}寸销售总数`,
+                  type: 'line',
                   data: salesTotals,
                   borderColor: salesColor,
                   fill: false,
-                  yAxisID: 'y-销售总数',
+                  yAxisID: 'y-axis-sales',
                 },
+                // 当天订单量和销售量的柱状图
                 {
-                  // 当天订单量和销售量的柱状图
-                  type: 'bar',
                   label: `当天${productLabel}寸订单量`,
+                  type: 'bar',
                   data: todayOrders,
                   backgroundColor: orderColor,
+                  yAxisID: 'y-axis-actual',
                 },
                 {
-                  type: 'bar',
                   label: `当天${productLabel}寸销售量`,
+                  type: 'bar',
                   data: todaySales,
                   backgroundColor: salesColor,
+                  yAxisID: 'y-axis-actual',
                 },
               ],
             },
             options: {
               scales: {
-                y: {
-                  type: 'linear', // 使用线性比例
-                  position: 'left',
-                  id: 'y-订单总量',
-                },
-                y2: {
-                  type: 'linear', // 使用线性比例
-                  position: 'right',
-                  id: 'y-销售总数',
-                  display: true,
-                  title: {
-                    display: true,
-                    text: '销售总数',
+                yAxes: [
+                  {
+                    id: 'y-axis-order',
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                      beginAtZero: true,
+                    },
                   },
-                },
-                x: {
-                  display: true,
-                  title: {
-                    display: true,
-                    text: '日期',
+                  {
+                    id: 'y-axis-sales',
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                      beginAtZero: true,
+                    },
                   },
-                },
+                  {
+                    id: 'y-axis-actual',
+                    type: 'linear',
+                    position: 'right',
+                    ticks: {
+                      beginAtZero: true,
+                    },
+                  },
+                ],
+                xAxes: [
+                  {
+                    display: true,
+                    title: {
+                      display: true,
+                      text: '日期',
+                    },
+                  },
+                ],
               },
               responsive: true,
               maintainAspectRatio: false,
               legend: {
                 display: true,
+                position: 'top',
               },
+              // 可以根据需要添加其他配置项
             },
           });
         }
