@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>多产品销售数据记录</title>
+<style>
+  body { font-family: Arial, sans-serif; }
+  table, th, td { border: 1px solid black; border-collapse: collapse; }
+  th, td { padding: 5px; text-align: left; }
+</style>
+</head>
+<body>
+
+<h2>产品销售数据输入</h2>
+<form id="dataForm">
+  <label for="date">日期:</label>
+  <input type="date" id="date" required>
+  <label for="orderQuantity15">15寸订单量:</label>
+  <input type="number" id="orderQuantity15" min="0" required>
+  <label for="salesQuantity15">15寸销售数:</label>
+  <input type="number" id="salesQuantity15" min="0" required>
+  <label for="orderQuantity18">18寸订单量:</label>
+  <input type="number" id="orderQuantity18" min="0" required>
+  <label for="salesQuantity18">18寸销售数:</label>
+  <input type="number" id="salesQuantity18" min="0" required>
+  <button type="submit">Add Data</button>
+</form>
+
+<button onclick="clearAllData()">清除所有数据</button>
+
+<h2>产品销售数据表格</h2>
+<table id="data-table">
+  <thead>
+    <tr>
+      <th>日期</th>
+      <th>15寸订单量</th>
+      <th>15寸销售数</th>
+      <th>18寸订单量</th>
+      <th>18寸销售数</th>
+      <th>15寸订单总量</th>
+      <th>15寸销售总数</th>
+      <th>18寸订单总量</th>
+      <th>18寸销售总数</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- 数据行将被动态添加到此处 -->
+  </tbody>
+</table>
+
+<script>
+// 存储数据的数组
+let salesData = [];
+
+// 从本地存储加载数据
+window.onload = function() {
+  if (localStorage.salesData) {
+    salesData = JSON.parse(localStorage.salesData);
+    renderTable();
+  }
+};
+
+// 保存数据到本地存储
+function saveData() {
+  localStorage.setItem('salesData', JSON.stringify(salesData));
+}
+
+// 表单提交时添加数据到表格
+function addData(event) {
+  event.preventDefault();
+  let date = document.getElementById('date').value;
+  let orderQuantity15 = parseInt(document.getElementById('orderQuantity15').value);
+  let salesQuantity15 = parseInt(document.getElementById('salesQuantity15').value);
+  let orderQuantity18 = parseInt(document.getElementById('orderQuantity18').value);
+  let salesQuantity18 = parseInt(document.getElementById('salesQuantity18').value);
+
+  // 计算订单总量和销售总数
+  let lastEntry = salesData.length > 0 ? salesData[salesData.length - 1] : { totalOrders15: 0, totalSales15: 0, totalOrders18: 0, totalSales18: 0 };
+  let totalOrders15 = lastEntry.totalOrders15 + orderQuantity15;
+  let totalSales15 = lastEntry.totalSales15 + salesQuantity15;
+  let totalOrders18 = lastEntry.totalOrders18 + orderQuantity18;
+  let totalSales18 = lastEntry.totalSales18 + salesQuantity18;
+
+  // 添加新数据
+  salesData.push({
+    date: date,
+    orderQuantity15: orderQuantity15,
+    salesQuantity15: salesQuantity15,
+    orderQuantity18: orderQuantity18,
+    salesQuantity18: salesQuantity18,
+    totalOrders15: totalOrders15,
+    totalSales15: totalSales15,
+    totalOrders18: totalOrders18,
+    totalSales18: totalSales18
+  });
+
+  // 清空输入框
+  document.getElementById('date').value = '';
+  document.getElementById('orderQuantity15').value = '';
+  document.getElementById('salesQuantity15').value = '';
+  document.getElementById('orderQuantity18').value = '';
+  document.getElementById('salesQuantity18').value = '';
+
+  // 渲染表格
+  renderTable();
+
+  // 保存数据
+  saveData();
+}
+
+// 清除所有数据和本地存储
+function clearAllData() {
+  // 清空数组
+  salesData = [];
+  // 清除本地存储
+  localStorage.removeItem('salesData');
+  // 清空表格
+  document.getElementById('data-table').getElementsByTagName('tbody')[0].innerHTML = '';
+  // 重置输入数据
+  document.getElementById('dataForm').reset();
+}
+
+// 渲染表格
+function renderTable() {
+  let tableBody = document.getElementById('data-table').getElementsByTagName('tbody')[0];
+  tableBody.innerHTML = ''; // 清空表格
+
+  salesData.forEach(entry => {
+    let row = tableBody.insertRow();
+    let cells = [
+      entry.date,
+      entry.orderQuantity15,
+      entry.salesQuantity15,
+      entry.orderQuantity18,
+      entry.salesQuantity18,
+      entry.totalOrders15,
+      entry.totalSales15,
+      entry.totalOrders18,
+      entry.totalSales18
+    ];
+    cells.forEach(text => {
+      let cell = row.insertCell();
+      cell.textContent = text;
+    });
+  });
+}
+
+// 给表单添加事件监听器
+document.getElementById('dataForm').addEventListener('submit', addData);
+</script>
+
+</body>
+</html>
