@@ -78,7 +78,16 @@
             try {
               const data = JSON.parse(e.target.result);
               if (Array.isArray(data)) {
-                salesData = data;
+                // 只保留订单量和销售数，删除订单总量和销售总数
+                salesData = data.map((entry) => ({
+                  date: entry.date,
+                  orderQuantity15: entry.orderQuantity15,
+                  salesQuantity15: entry.salesQuantity15,
+                  orderQuantity18: entry.orderQuantity18,
+                  salesQuantity18: entry.salesQuantity18,
+                  orderQuantity4x10: entry.orderQuantity4x10,
+                  salesQuantity4x10: entry.salesQuantity4x10,
+                }));
                 renderTable();
               } else {
                 throw new Error('数据格式不正确，应为数组格式。');
@@ -120,11 +129,12 @@
             ) || 0,
         };
 
-        const totals = calculateTotals(quantities);
+        // const totals = calculateTotals(quantities);
+        // 不再包含订单总量和销售总数
         salesData.push({
           date: date,
           ...quantities,
-          ...totals,
+          // ...totals
         });
 
         renderTable();
@@ -187,8 +197,28 @@
           .getElementsByTagName('tbody')[0];
         tableBody.innerHTML = ''; // 清空表格
 
+        // 初始化累计总数
+        let runningTotals = {
+          totalOrders15: 0,
+          totalSales15: 0,
+          totalOrders18: 0,
+          totalSales18: 0,
+          totalOrders4x10: 0,
+          totalSales4x10: 0,
+        };
+
+        // 遍历销售数据，计算每个产品的累计订单量和销售数
         salesData.forEach((entry) => {
+          runningTotals.totalOrders15 += entry.orderQuantity15;
+          runningTotals.totalSales15 += entry.salesQuantity15;
+          runningTotals.totalOrders18 += entry.orderQuantity18;
+          runningTotals.totalSales18 += entry.salesQuantity18;
+          runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
+          runningTotals.totalSales4x10 += entry.salesQuantity4x10;
+
+          // 为当前条目创建新的表格行
           const row = tableBody.insertRow();
+          // 填充当前条目的数据
           const cells = [
             entry.date,
             entry.orderQuantity15,
@@ -197,13 +227,15 @@
             entry.salesQuantity18,
             entry.orderQuantity4x10,
             entry.salesQuantity4x10,
-            entry.totalOrders15,
-            entry.totalSales15,
-            entry.totalOrders18,
-            entry.totalSales18,
-            entry.totalOrders4x10,
-            entry.totalSales4x10,
+            runningTotals.totalOrders15,
+            runningTotals.totalSales15,
+            runningTotals.totalOrders18,
+            runningTotals.totalSales18,
+            runningTotals.totalOrders4x10,
+            runningTotals.totalSales4x10,
           ];
+
+          // 将数据填充到表格单元格中
           cells.forEach((text) => {
             const cell = row.insertCell();
             cell.textContent = text;
