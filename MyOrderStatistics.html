@@ -35,7 +35,7 @@
 
     <button onclick="clearAllData()">清除所有数据</button>
     <button onclick="exportData()">导出数据为JSON</button>
-    <button onclick="importData()">导入数据</button>
+    <button onclick="loadSalesData()">导入数据</button>
 
     <h2>产品销售数据表格</h2>
     <table id="data-table">
@@ -65,12 +65,12 @@
       // 存储数据的数组
       let salesData = [];
 
-      // 导入数据功能
-      function importData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = function (event) {
+      // 从本地文件加载销售数据
+      function loadSalesData() {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.onchange = function (event) {
           const file = event.target.files[0];
           if (!file) return;
           const reader = new FileReader();
@@ -80,9 +80,8 @@
               if (Array.isArray(data)) {
                 salesData = data;
                 renderTable();
-                calculateTotals();
               } else {
-                throw new Error('导入的数据不是有效的JSON数组。');
+                throw new Error('数据格式不正确，应为数组格式。');
               }
             } catch (error) {
               alert(error.message);
@@ -90,12 +89,11 @@
           };
           reader.readAsText(file);
         };
-        input.click(); // 触发点击以打开文件选择对话框
+        fileInput.click(); // 触发点击以打开文件选择对话框
       }
 
       // 添加数据到表格
       function addData() {
-        // 收集输入数据
         const date = document.getElementById('date').value;
         const quantities = {
           orderQuantity15:
@@ -122,28 +120,19 @@
             ) || 0,
         };
 
-        // 确保至少有一个日期被添加
-        if (!date) {
-          alert('请提供日期。');
-          return;
-        }
-
-        // 添加新数据
+        const totals = calculateTotals(quantities);
         salesData.push({
           date: date,
           ...quantities,
+          ...totals,
         });
 
-        // 清空输入框
-        clearInputs();
-
-        // 重新计算并渲染表格
-        calculateTotals();
         renderTable();
+        clearInputs();
       }
 
       // 计算订单总量和销售总数
-      function calculateTotals() {
+      function calculateTotals(newQuantities) {
         let totals = {
           totalOrders15: 0,
           totalSales15: 0,
@@ -162,15 +151,15 @@
           totals.totalSales4x10 += entry.salesQuantity4x10;
         });
 
-        // 更新销售数据数组的总计
-        salesData.forEach((entry) => {
-          entry.totalOrders15 = totals.totalOrders15;
-          entry.totalSales15 = totals.totalSales15;
-          entry.totalOrders18 = totals.totalOrders18;
-          entry.totalSales18 = totals.totalSales18;
-          entry.totalOrders4x10 = totals.totalOrders4x10;
-          entry.totalSales4x10 = totals.totalSales4x10;
-        });
+        // Add the latest quantities to the totals
+        totals.totalOrders15 += newQuantities.orderQuantity15;
+        totals.totalSales15 += newQuantities.salesQuantity15;
+        totals.totalOrders18 += newQuantities.orderQuantity18;
+        totals.totalSales18 += newQuantities.salesQuantity18;
+        totals.totalOrders4x10 += newQuantities.orderQuantity4x10;
+        totals.totalSales4x10 += newQuantities.salesQuantity4x10;
+
+        return totals;
       }
 
       // 清除所有数据
@@ -182,25 +171,43 @@
 
       // 清空输入框
       function clearInputs() {
-        const inputs = document.querySelectorAll('#dataForm input');
-        inputs.forEach((input) => (input.value = ''));
+        document.getElementById('date').value = '';
+        document.getElementById('product15OrderQty').value = '';
+        document.getElementById('product15SalesQty').value = '';
+        document.getElementById('product18OrderQty').value = '';
+        document.getElementById('product18SalesQty').value = '';
+        document.getElementById('product4x10OrderQty').value = '';
+        document.getElementById('product4x10SalesQty').value = '';
       }
 
       // 渲染表格
       function renderTable() {
-        const tbody = document
+        const tableBody = document
           .getElementById('data-table')
           .getElementsByTagName('tbody')[0];
-        tbody.innerHTML = ''; // 清空表格
+        tableBody.innerHTML = ''; // 清空表格
 
         salesData.forEach((entry) => {
-          const row = document.createElement('tr');
-          Object.values(entry).forEach((text) => {
-            const cell = document.createElement('td');
+          const row = tableBody.insertRow();
+          const cells = [
+            entry.date,
+            entry.orderQuantity15,
+            entry.salesQuantity15,
+            entry.orderQuantity18,
+            entry.salesQuantity18,
+            entry.orderQuantity4x10,
+            entry.salesQuantity4x10,
+            entry.totalOrders15,
+            entry.totalSales15,
+            entry.totalOrders18,
+            entry.totalSales18,
+            entry.totalOrders4x10,
+            entry.totalSales4x10,
+          ];
+          cells.forEach((text) => {
+            const cell = row.insertCell();
             cell.textContent = text;
-            row.appendChild(cell);
           });
-          tbody.appendChild(row);
         });
       }
 
@@ -219,14 +226,6 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
-
-      // 初始化表格渲染
-      function initialize() {
-        renderTable();
-      }
-
-      // 调用初始化函数
-      initialize();
     </script>
   </body>
 </html>
