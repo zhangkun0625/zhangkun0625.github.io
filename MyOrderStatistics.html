@@ -5,6 +5,9 @@
     <title>多产品销售数据记录</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+      canvas {
+        min-width: 200px; /* 或者任何你认为合适的最小宽度 */
+      }
       body {
         font-family: Arial, sans-serif;
       }
@@ -64,10 +67,10 @@
     </table>
 
     <h2>图表</h2>
-    <div>
-      <canvas id="myChart" width="400" height="200"></canvas>
-      <!-- <canvas id="chart-18寸" width="400" height="200"></canvas>
-      <canvas id="chart-4x10"></canvas> -->
+    <div style="display: flex; width: 100%">
+      <canvas id="chart-15" width="300" height="200" style="flex: 1"></canvas>
+      <canvas id="chart-18" width="300" height="200" style="flex: 1"></canvas>
+      <canvas id="chart-4x10" width="300" height="200" style="flex: 1"></canvas>
     </div>
 
     <script>
@@ -270,72 +273,6 @@
       }
 
       //绘制图表===========================
-      //   function createChartssssss() {
-      //     // 检查 Chart.js 是否已加载
-      //     if (typeof Chart === 'undefined') {
-      //       console.error('Chart.js 未加载，将在 1 秒后重试...');
-      //       setTimeout(createCharts, 1000);
-      //       return;
-      //     }
-
-      //     const ctx = document.getElementById('myChart');
-      //     const labels = [
-      //       '一月份',
-      //       '二月份',
-      //       '三月份',
-      //       '四月份',
-      //       '五月份',
-      //       '六月份',
-      //       '七月份',
-      //     ]; // 设置 X 轴上对应的标签
-      //     const data = {
-      //       labels: labels,
-      //       datasets: [
-      //         {
-      //           label: '我的第一个折线图',
-      //           data: [65, 59, 80, 81, 56, 55, 40],
-      //           fill: false,
-      //           borderColor: 'rgb(75, 192, 192)', // 设置线的颜色
-      //           backgroundColor: ['rgba(179, 0, 33, 0.5)'], // 设置点的填充色
-      //           pointStyle: 'circle', //设置点类型为圆点
-      //           pointRadius: 6, //设置圆点半径
-      //           pointHoverRadius: 10, //设置鼠标移动上去后圆点半径
-      //           tension: 0.1,
-      //         },
-      //       ],
-      //     };
-      //     const config = {
-      //       type: 'line', // 设置图表类型
-      //       data: data,
-      //       options: {
-      //         responsive: true, // 设置图表为响应式
-
-      //         interaction: {
-      //           // 设置每个点的交互
-      //           intersect: false,
-      //         },
-      //         scales: {
-      //           // 设置 X 轴与 Y 轴
-      //           x: {
-      //             display: true,
-      //             title: {
-      //               display: true,
-      //               text: '日期',
-      //             },
-      //           },
-      //           y: {
-      //             display: true,
-      //             title: {
-      //               display: true,
-      //               text: '票数',
-      //             },
-      //           },
-      //         },
-      //       },
-      //     };
-      //     const myChart = new Chart(ctx, config);
-      //   }
-
       function createCharts() {
         // 检查 Chart.js 是否已加载
         if (typeof Chart === 'undefined') {
@@ -344,58 +281,76 @@
           return;
         }
 
-        // 准备15寸产品的数据
-        const chartData15 = {
-          labels: [], // 将被填充为日期
-          datasets: [
-            {
-              label: '15寸订单总量',
-              data: [], // 将被填充为每天的订单总量
-              borderColor: 'rgb(75, 192, 192)',
-              fill: false,
-            },
-            {
-              label: '15寸销售总数',
-              data: [], // 将被填充为每天的销售总数
-              borderColor: 'rgb(153, 102, 255)',
-              fill: false,
-            },
-          ],
-        };
+        // 定义一个函数来为每种产品创建图表
+        function createChartForProduct(
+          chartId,
+          productLabel,
+          orderColor,
+          salesColor
+        ) {
+          const ctx = document.getElementById(chartId).getContext('2d');
+          const labels = salesData.map((entry) =>
+            new Date(entry.date).toLocaleDateString()
+          );
+          const orderTotals = salesData.map(
+            (entry) => entry[`totalOrders${productLabel}`]
+          );
+          const salesTotals = salesData.map(
+            (entry) => entry[`totalSales${productLabel}`]
+          );
 
-        // 填充15寸产品的数据
-        salesData.forEach((entry) => {
-          const date = new Date(entry.date).toLocaleDateString(); // 格式化日期
-          chartData15.labels.push(date);
-          chartData15.datasets[0].data.push(entry.totalOrders15); // 订单总量
-          chartData15.datasets[1].data.push(entry.totalSales15); // 销售总数
-        });
-
-        // 获取15寸图表的画布和上下文
-        const chartCanvas15 = document.getElementById('myChart');
-        if (chartCanvas15) {
-          const chartCtx15 = chartCanvas15.getContext('2d');
-
-          // 检查是否已经有图表实例
-          let chart15 = new Chart(chartCtx15, {
+          new Chart(ctx, {
             type: 'line',
-            data: chartData15,
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: `${productLabel}寸订单总量`,
+                  data: orderTotals,
+                  borderColor: orderColor,
+                  fill: false,
+                },
+                {
+                  label: `${productLabel}寸销售总数`,
+                  data: salesTotals,
+                  borderColor: salesColor,
+                  fill: false,
+                },
+              ],
+            },
             options: {
               scales: {
-                // x: {
-                //   type: 'time',
-                //   time: {
-                //     unit: 'day',
-                //   },
-                // },
                 y: {
                   beginAtZero: true,
                 },
               },
+              responsive: true,
+              maintainAspectRatio: false,
             },
           });
         }
+
+        // 为每个产品创建图表
+        createChartForProduct(
+          'chart-15',
+          '15',
+          'rgb(75, 192, 192)',
+          'rgb(153, 102, 255)'
+        );
+        createChartForProduct(
+          'chart-18',
+          '18',
+          'rgb(255, 206, 86)',
+          'rgb(255, 99, 132)'
+        );
+        createChartForProduct(
+          'chart-4x10',
+          '4x10',
+          'rgb(54, 162, 235)',
+          'rgb(255, 205, 34)'
+        );
       }
+      //====
     </script>
   </body>
 </html>
