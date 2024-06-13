@@ -65,12 +65,9 @@
 
     <h2>图表</h2>
     <div>
-      <canvas id="barChart"></canvas>
-      <!-- 柱状图 -->
-    </div>
-    <div>
-      <canvas id="lineChart"></canvas>
-      <!-- 折线图 -->
+      <canvas id="myChart" width="400" height="200"></canvas>
+      <!-- <canvas id="chart-18寸" width="400" height="200"></canvas>
+      <canvas id="chart-4x10"></canvas> -->
     </div>
 
     <script>
@@ -99,7 +96,16 @@
                   salesQuantity18: entry.salesQuantity18,
                   orderQuantity4x10: entry.orderQuantity4x10,
                   salesQuantity4x10: entry.salesQuantity4x10,
+                  // 初始化导入的累计总数
+                  totalOrders15: 0,
+                  totalSales15: 0,
+                  totalOrders18: 0,
+                  totalSales18: 0,
+                  totalOrders4x10: 0,
+                  totalSales4x10: 0,
                 }));
+
+                updateRunningTotals(); // 更新累计总数
                 renderTable();
               } else {
                 throw new Error('数据格式不正确，应为数组格式。');
@@ -145,8 +151,9 @@
         salesData.push({
           date: date,
           ...quantities,
-          // ...totals
         });
+
+        updateRunningTotals(); // 更新累计总数
 
         renderTable();
         clearInputs();
@@ -168,6 +175,35 @@
         document.getElementById('product18SalesQty').value = '';
         document.getElementById('product4x10OrderQty').value = '';
         document.getElementById('product4x10SalesQty').value = '';
+      }
+
+      //更新累加的数据
+      function updateRunningTotals() {
+        let runningTotals = {
+          totalOrders15: 0,
+          totalSales15: 0,
+          totalOrders18: 0,
+          totalSales18: 0,
+          totalOrders4x10: 0,
+          totalSales4x10: 0,
+        };
+
+        salesData.forEach((entry) => {
+          runningTotals.totalOrders15 += entry.orderQuantity15;
+          runningTotals.totalSales15 += entry.salesQuantity15;
+          runningTotals.totalOrders18 += entry.orderQuantity18;
+          runningTotals.totalSales18 += entry.salesQuantity18;
+          runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
+          runningTotals.totalSales4x10 += entry.salesQuantity4x10;
+
+          // 更新到每个条目
+          entry.totalOrders15 = runningTotals.totalOrders15;
+          entry.totalSales15 = runningTotals.totalSales15;
+          entry.totalOrders18 = runningTotals.totalOrders18;
+          entry.totalSales18 = runningTotals.totalSales18;
+          entry.totalOrders4x10 = runningTotals.totalOrders4x10;
+          entry.totalSales4x10 = runningTotals.totalSales4x10;
+        });
       }
 
       // 渲染表格
@@ -215,9 +251,6 @@
           row.insertCell(11).textContent = runningTotals.totalOrders4x10;
           row.insertCell(12).textContent = runningTotals.totalSales4x10;
         });
-
-        // 调用函数创建图表
-        // createCharts();
       }
 
       // 导出数据功能
@@ -236,85 +269,131 @@
         URL.revokeObjectURL(url);
       }
 
+      //绘制图表===========================
+      //   function createChartssssss() {
+      //     // 检查 Chart.js 是否已加载
+      //     if (typeof Chart === 'undefined') {
+      //       console.error('Chart.js 未加载，将在 1 秒后重试...');
+      //       setTimeout(createCharts, 1000);
+      //       return;
+      //     }
+
+      //     const ctx = document.getElementById('myChart');
+      //     const labels = [
+      //       '一月份',
+      //       '二月份',
+      //       '三月份',
+      //       '四月份',
+      //       '五月份',
+      //       '六月份',
+      //       '七月份',
+      //     ]; // 设置 X 轴上对应的标签
+      //     const data = {
+      //       labels: labels,
+      //       datasets: [
+      //         {
+      //           label: '我的第一个折线图',
+      //           data: [65, 59, 80, 81, 56, 55, 40],
+      //           fill: false,
+      //           borderColor: 'rgb(75, 192, 192)', // 设置线的颜色
+      //           backgroundColor: ['rgba(179, 0, 33, 0.5)'], // 设置点的填充色
+      //           pointStyle: 'circle', //设置点类型为圆点
+      //           pointRadius: 6, //设置圆点半径
+      //           pointHoverRadius: 10, //设置鼠标移动上去后圆点半径
+      //           tension: 0.1,
+      //         },
+      //       ],
+      //     };
+      //     const config = {
+      //       type: 'line', // 设置图表类型
+      //       data: data,
+      //       options: {
+      //         responsive: true, // 设置图表为响应式
+
+      //         interaction: {
+      //           // 设置每个点的交互
+      //           intersect: false,
+      //         },
+      //         scales: {
+      //           // 设置 X 轴与 Y 轴
+      //           x: {
+      //             display: true,
+      //             title: {
+      //               display: true,
+      //               text: '日期',
+      //             },
+      //           },
+      //           y: {
+      //             display: true,
+      //             title: {
+      //               display: true,
+      //               text: '票数',
+      //             },
+      //           },
+      //         },
+      //       },
+      //     };
+      //     const myChart = new Chart(ctx, config);
+      //   }
+
       function createCharts() {
-        // 检查 Chart 是否已经定义，确保 Chart.js 已加载
-        if (typeof Chart !== 'undefined') {
-          // 创建柱状图和折线图的逻辑
-          // ...
-
-          // 示例：创建柱状图
-          const barChartCanvas = document.getElementById('barChart');
-          const barChartCtx = barChartCanvas.getContext('2d');
-          const barChart = new Chart(barChartCtx, {
-            // 柱状图配置
-            type: 'bar',
-            data: {
-              labels: ['15寸', '18寸', '4x10'],
-              datasets: [
-                {
-                  label: '订单量',
-                  data: salesData.map((entry) => entry.orderQuantity15), // 示例数据
-                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                },
-                {
-                  label: '销售数',
-                  data: salesData.map((entry) => entry.salesQuantity15), // 示例数据
-                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                },
-              ],
-            },
-            options: {
-              scales: {
-                y: {
-                  beginAtZero: true,
-                },
-              },
-            },
-          });
-
-          // 示例：创建折线图
-          const lineChartCanvas = document.getElementById('lineChart');
-          const lineChartCtx = lineChartCanvas.getContext('2d');
-          const lineChart = new Chart(lineChartCtx, {
-            // 折线图配置
-            type: 'line',
-            data: {
-              labels: salesData.map((entry) =>
-                new Date(entry.date).toLocaleDateString()
-              ), // 使用日期作为X轴
-              datasets: [
-                {
-                  label: '15寸订单总量',
-                  data: salesData.map((entry) => entry.orderQuantity15), // 示例数据
-                  fill: false,
-                  borderColor: 'rgb(75, 192, 192)',
-                },
-                {
-                  label: '15寸销售总数',
-                  data: salesData.map((entry) => entry.salesQuantity15), // 示例数据
-                  fill: false,
-                  borderColor: 'rgb(153, 102, 255)',
-                },
-              ],
-            },
-            options: {
-              scales: {
-                x: {
-                  type: 'time',
-                  time: {
-                    unit: 'month',
-                  },
-                },
-                y: {
-                  beginAtZero: true,
-                },
-              },
-            },
-          });
-        } else {
-          // 如果 Chart.js 还未加载，等待一段时间后重试
-          console.error('Chart.js 未加载，将在1秒后重试...');
+        // 检查 Chart.js 是否已加载
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js 未加载，将在 1 秒后重试...');
           setTimeout(createCharts, 1000);
+          return;
+        }
+
+        // 准备15寸产品的数据
+        const chartData15 = {
+          labels: [], // 将被填充为日期
+          datasets: [
+            {
+              label: '15寸订单总量',
+              data: [], // 将被填充为每天的订单总量
+              borderColor: 'rgb(75, 192, 192)',
+              fill: false,
+            },
+            {
+              label: '15寸销售总数',
+              data: [], // 将被填充为每天的销售总数
+              borderColor: 'rgb(153, 102, 255)',
+              fill: false,
+            },
+          ],
+        };
+
+        // 填充15寸产品的数据
+        salesData.forEach((entry) => {
+          const date = new Date(entry.date).toLocaleDateString(); // 格式化日期
+          chartData15.labels.push(date);
+          chartData15.datasets[0].data.push(entry.totalOrders15); // 订单总量
+          chartData15.datasets[1].data.push(entry.totalSales15); // 销售总数
+        });
+
+        // 获取15寸图表的画布和上下文
+        const chartCanvas15 = document.getElementById('myChart');
+        if (chartCanvas15) {
+          const chartCtx15 = chartCanvas15.getContext('2d');
+
+          // 检查是否已经有图表实例
+          let chart15 = new Chart(chartCtx15, {
+            type: 'line',
+            data: chartData15,
+            options: {
+              scales: {
+                // x: {
+                //   type: 'time',
+                //   time: {
+                //     unit: 'day',
+                //   },
+                // },
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
         }
       }
     </script>
