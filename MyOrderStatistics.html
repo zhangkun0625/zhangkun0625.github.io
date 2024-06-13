@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>多产品销售数据记录</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -36,6 +37,7 @@
     <button onclick="clearAllData()">清除所有数据</button>
     <button onclick="exportData()">导出数据为JSON</button>
     <button onclick="loadSalesData()">导入数据</button>
+    <button onclick="createCharts()">绘图</button>
 
     <h2>产品销售数据表格</h2>
     <table id="data-table">
@@ -60,6 +62,16 @@
         <!-- 数据行将被动态添加到此处 -->
       </tbody>
     </table>
+
+    <h2>图表</h2>
+    <div>
+      <canvas id="barChart"></canvas>
+      <!-- 柱状图 -->
+    </div>
+    <div>
+      <canvas id="lineChart"></canvas>
+      <!-- 折线图 -->
+    </div>
 
     <script>
       // 存储数据的数组
@@ -129,7 +141,6 @@
             ) || 0,
         };
 
-        // const totals = calculateTotals(quantities);
         // 不再包含订单总量和销售总数
         salesData.push({
           date: date,
@@ -139,37 +150,6 @@
 
         renderTable();
         clearInputs();
-      }
-
-      // 计算订单总量和销售总数
-      function calculateTotals(newQuantities) {
-        let totals = {
-          totalOrders15: 0,
-          totalSales15: 0,
-          totalOrders18: 0,
-          totalSales18: 0,
-          totalOrders4x10: 0,
-          totalSales4x10: 0,
-        };
-
-        salesData.forEach((entry) => {
-          totals.totalOrders15 += entry.orderQuantity15;
-          totals.totalSales15 += entry.salesQuantity15;
-          totals.totalOrders18 += entry.orderQuantity18;
-          totals.totalSales18 += entry.salesQuantity18;
-          totals.totalOrders4x10 += entry.orderQuantity4x10;
-          totals.totalSales4x10 += entry.salesQuantity4x10;
-        });
-
-        // Add the latest quantities to the totals
-        totals.totalOrders15 += newQuantities.orderQuantity15;
-        totals.totalSales15 += newQuantities.salesQuantity15;
-        totals.totalOrders18 += newQuantities.orderQuantity18;
-        totals.totalSales18 += newQuantities.salesQuantity18;
-        totals.totalOrders4x10 += newQuantities.orderQuantity4x10;
-        totals.totalSales4x10 += newQuantities.salesQuantity4x10;
-
-        return totals;
       }
 
       // 清除所有数据
@@ -192,12 +172,14 @@
 
       // 渲染表格
       function renderTable() {
+        // 获取表格的tbody元素
         const tableBody = document
           .getElementById('data-table')
           .getElementsByTagName('tbody')[0];
-        tableBody.innerHTML = ''; // 清空表格
+        // 清空现有的表格数据
+        tableBody.innerHTML = '';
 
-        // 初始化累计总数
+        // 初始化累计总数对象
         let runningTotals = {
           totalOrders15: 0,
           totalSales15: 0,
@@ -209,6 +191,7 @@
 
         // 遍历销售数据，计算每个产品的累计订单量和销售数
         salesData.forEach((entry) => {
+          // 累加订单量和销售数到对应的累计总数
           runningTotals.totalOrders15 += entry.orderQuantity15;
           runningTotals.totalSales15 += entry.salesQuantity15;
           runningTotals.totalOrders18 += entry.orderQuantity18;
@@ -216,31 +199,25 @@
           runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
           runningTotals.totalSales4x10 += entry.salesQuantity4x10;
 
-          // 为当前条目创建新的表格行
+          // 创建新的表格行并填充数据
           const row = tableBody.insertRow();
-          // 填充当前条目的数据
-          const cells = [
-            entry.date,
-            entry.orderQuantity15,
-            entry.salesQuantity15,
-            entry.orderQuantity18,
-            entry.salesQuantity18,
-            entry.orderQuantity4x10,
-            entry.salesQuantity4x10,
-            runningTotals.totalOrders15,
-            runningTotals.totalSales15,
-            runningTotals.totalOrders18,
-            runningTotals.totalSales18,
-            runningTotals.totalOrders4x10,
-            runningTotals.totalSales4x10,
-          ];
-
-          // 将数据填充到表格单元格中
-          cells.forEach((text) => {
-            const cell = row.insertCell();
-            cell.textContent = text;
-          });
+          row.insertCell(0).textContent = entry.date;
+          row.insertCell(1).textContent = entry.orderQuantity15;
+          row.insertCell(2).textContent = entry.salesQuantity15;
+          row.insertCell(3).textContent = entry.orderQuantity18;
+          row.insertCell(4).textContent = entry.salesQuantity18;
+          row.insertCell(5).textContent = entry.orderQuantity4x10;
+          row.insertCell(6).textContent = entry.salesQuantity4x10;
+          row.insertCell(7).textContent = runningTotals.totalOrders15;
+          row.insertCell(8).textContent = runningTotals.totalSales15;
+          row.insertCell(9).textContent = runningTotals.totalOrders18;
+          row.insertCell(10).textContent = runningTotals.totalSales18;
+          row.insertCell(11).textContent = runningTotals.totalOrders4x10;
+          row.insertCell(12).textContent = runningTotals.totalSales4x10;
         });
+
+        // 调用函数创建图表
+        // createCharts();
       }
 
       // 导出数据功能
@@ -257,6 +234,88 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+      }
+
+      function createCharts() {
+        // 检查 Chart 是否已经定义，确保 Chart.js 已加载
+        if (typeof Chart !== 'undefined') {
+          // 创建柱状图和折线图的逻辑
+          // ...
+
+          // 示例：创建柱状图
+          const barChartCanvas = document.getElementById('barChart');
+          const barChartCtx = barChartCanvas.getContext('2d');
+          const barChart = new Chart(barChartCtx, {
+            // 柱状图配置
+            type: 'bar',
+            data: {
+              labels: ['15寸', '18寸', '4x10'],
+              datasets: [
+                {
+                  label: '订单量',
+                  data: salesData.map((entry) => entry.orderQuantity15), // 示例数据
+                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                },
+                {
+                  label: '销售数',
+                  data: salesData.map((entry) => entry.salesQuantity15), // 示例数据
+                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                },
+              ],
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+
+          // 示例：创建折线图
+          const lineChartCanvas = document.getElementById('lineChart');
+          const lineChartCtx = lineChartCanvas.getContext('2d');
+          const lineChart = new Chart(lineChartCtx, {
+            // 折线图配置
+            type: 'line',
+            data: {
+              labels: salesData.map((entry) =>
+                new Date(entry.date).toLocaleDateString()
+              ), // 使用日期作为X轴
+              datasets: [
+                {
+                  label: '15寸订单总量',
+                  data: salesData.map((entry) => entry.orderQuantity15), // 示例数据
+                  fill: false,
+                  borderColor: 'rgb(75, 192, 192)',
+                },
+                {
+                  label: '15寸销售总数',
+                  data: salesData.map((entry) => entry.salesQuantity15), // 示例数据
+                  fill: false,
+                  borderColor: 'rgb(153, 102, 255)',
+                },
+              ],
+            },
+            options: {
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'month',
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+        } else {
+          // 如果 Chart.js 还未加载，等待一段时间后重试
+          console.error('Chart.js 未加载，将在1秒后重试...');
+          setTimeout(createCharts, 1000);
+        }
       }
     </script>
   </body>
