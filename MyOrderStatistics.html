@@ -11,16 +11,33 @@
       body {
         font-family: Arial, sans-serif;
       }
-      table,
-      th,
-      td {
-        border: 1px solid black;
+      table {
+        width: 100%; /* 表格宽度设为100% */
         border-collapse: collapse;
       }
       th,
       td {
+        border: 1px solid black;
         padding: 5px;
-        text-align: left;
+        text-align: center;
+      }
+
+      /* 表格头部悬浮样式 */
+      th.sticky {
+        position: sticky;
+        top: 0; /* 表头距离页面顶部的距离 */
+        background-color: #f1f1f1; /* 表头背景色 */
+        z-index: 10; /* 确保表头在内容上方 */
+      }
+
+      /* 确保表格的tbody和thead具有相同的字体和边距 */
+      thead,
+      tbody,
+      tfoot,
+      tr,
+      td,
+      th {
+        vertical-align: top;
       }
     </style>
   </head>
@@ -46,19 +63,19 @@
     <table id="data-table">
       <thead>
         <tr>
-          <th>日期</th>
-          <th>15寸订单量</th>
-          <th>15寸销售数</th>
-          <th>18寸订单量</th>
-          <th>18寸销售数</th>
-          <th>4x10订单量</th>
-          <th>4x10销售数</th>
-          <th>15寸订单总量</th>
-          <th>15寸销售总数</th>
-          <th>18寸订单总量</th>
-          <th>18寸销售总数</th>
-          <th>4x10订单总量</th>
-          <th>4x10销售总数</th>
+          <th class="sticky">日期</th>
+          <th class="sticky">15寸订单量</th>
+          <th class="sticky">15寸销售数</th>
+          <th class="sticky">18寸订单量</th>
+          <th class="sticky">18寸销售数</th>
+          <th class="sticky">4x10订单量</th>
+          <th class="sticky">4x10销售数</th>
+          <th class="sticky">15寸订单总量</th>
+          <th class="sticky">15寸销售总数</th>
+          <th class="sticky">18寸订单总量</th>
+          <th class="sticky">18寸销售总数</th>
+          <th class="sticky">4x10订单总量</th>
+          <th class="sticky">4x10销售总数</th>
         </tr>
       </thead>
       <tbody>
