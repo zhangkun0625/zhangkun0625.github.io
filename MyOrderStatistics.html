@@ -90,10 +90,10 @@
 
     <h2>图表</h2>
     <div style="width: 100%">
-      <canvas id="chart-15" width="100%" height="200"></canvas>
+      <canvas id="chart-15B" width="100%" height="200"></canvas>
     </div>
     <div style="width: 100%">
-      <canvas id="chart-18" width="100%" height="200"></canvas>
+      <canvas id="chart-18B" width="100%" height="200"></canvas>
     </div>
     <div style="width: 100%">
       <canvas id="chart-4x10" width="100%" height="200"></canvas>
@@ -119,17 +119,17 @@
                 // 只保留订单量和销售数，删除订单总量和销售总数
                 salesData = data.map((entry) => ({
                   date: entry.date,
-                  orderQuantity15: entry.orderQuantity15,
-                  salesQuantity15: entry.salesQuantity15,
-                  orderQuantity18: entry.orderQuantity18,
-                  salesQuantity18: entry.salesQuantity18,
+                  orderQuantity15B: entry.orderQuantity15B,
+                  salesQuantity15B: entry.salesQuantity15B,
+                  orderQuantity18B: entry.orderQuantity18B,
+                  salesQuantity18B: entry.salesQuantity18B,
                   orderQuantity4x10: entry.orderQuantity4x10,
                   salesQuantity4x10: entry.salesQuantity4x10,
                   // 初始化导入的累计总数
-                  totalOrders15: 0,
-                  totalSales15: 0,
-                  totalOrders18: 0,
-                  totalSales18: 0,
+                  totalOrders15B: 0,
+                  totalSales15B: 0,
+                  totalOrders18B: 0,
+                  totalSales18B: 0,
                   totalOrders4x10: 0,
                   totalSales4x10: 0,
                 }));
@@ -152,16 +152,16 @@
       function addData() {
         const date = document.getElementById('date').value;
         const quantities = {
-          orderQuantity15:
+          orderQuantity15B:
             parseInt(document.getElementById('product15OrderQty').value, 10) ||
             0,
-          salesQuantity15:
+          salesQuantity15B:
             parseInt(document.getElementById('product15SalesQty').value, 10) ||
             0,
-          orderQuantity18:
+          orderQuantity18B:
             parseInt(document.getElementById('product18OrderQty').value, 10) ||
             0,
-          salesQuantity18:
+          salesQuantity18B:
             parseInt(document.getElementById('product18SalesQty').value, 10) ||
             0,
           orderQuantity4x10:
@@ -209,27 +209,27 @@
       //更新累加的数据
       function updateRunningTotals() {
         let runningTotals = {
-          totalOrders15: 0,
-          totalSales15: 0,
-          totalOrders18: 0,
-          totalSales18: 0,
+          totalOrders15B: 0,
+          totalSales15B: 0,
+          totalOrders18B: 0,
+          totalSales18B: 0,
           totalOrders4x10: 0,
           totalSales4x10: 0,
         };
 
         salesData.forEach((entry) => {
-          runningTotals.totalOrders15 += entry.orderQuantity15;
-          runningTotals.totalSales15 += entry.salesQuantity15;
-          runningTotals.totalOrders18 += entry.orderQuantity18;
-          runningTotals.totalSales18 += entry.salesQuantity18;
+          runningTotals.totalOrders15B += entry.orderQuantity15B;
+          runningTotals.totalSales15B += entry.salesQuantity15B;
+          runningTotals.totalOrders18B += entry.orderQuantity18B;
+          runningTotals.totalSales18B += entry.salesQuantity18B;
           runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
           runningTotals.totalSales4x10 += entry.salesQuantity4x10;
 
           // 更新到每个条目
-          entry.totalOrders15 = runningTotals.totalOrders15;
-          entry.totalSales15 = runningTotals.totalSales15;
-          entry.totalOrders18 = runningTotals.totalOrders18;
-          entry.totalSales18 = runningTotals.totalSales18;
+          entry.totalOrders15B = runningTotals.totalOrders15B;
+          entry.totalSales15B = runningTotals.totalSales15B;
+          entry.totalOrders18B = runningTotals.totalOrders18B;
+          entry.totalSales18B = runningTotals.totalSales18B;
           entry.totalOrders4x10 = runningTotals.totalOrders4x10;
           entry.totalSales4x10 = runningTotals.totalSales4x10;
         });
@@ -246,10 +246,10 @@
 
         // 初始化累计总数对象
         let runningTotals = {
-          totalOrders15: 0,
-          totalSales15: 0,
-          totalOrders18: 0,
-          totalSales18: 0,
+          totalOrders15B: 0,
+          totalSales15B: 0,
+          totalOrders18B: 0,
+          totalSales18B: 0,
           totalOrders4x10: 0,
           totalSales4x10: 0,
         };
@@ -257,26 +257,26 @@
         // 遍历销售数据，计算每个产品的累计订单量和销售数
         salesData.forEach((entry) => {
           // 累加订单量和销售数到对应的累计总数
-          runningTotals.totalOrders15 += entry.orderQuantity15;
-          runningTotals.totalSales15 += entry.salesQuantity15;
-          runningTotals.totalOrders18 += entry.orderQuantity18;
-          runningTotals.totalSales18 += entry.salesQuantity18;
+          runningTotals.totalOrders15B += entry.orderQuantity15B;
+          runningTotals.totalSales15B += entry.salesQuantity15B;
+          runningTotals.totalOrders18B += entry.orderQuantity18B;
+          runningTotals.totalSales18B += entry.salesQuantity18B;
           runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
           runningTotals.totalSales4x10 += entry.salesQuantity4x10;
 
           // 创建新的表格行并填充数据
           const row = tableBody.insertRow();
           row.insertCell(0).textContent = entry.date;
-          row.insertCell(1).textContent = entry.orderQuantity15;
-          row.insertCell(2).textContent = entry.salesQuantity15;
-          row.insertCell(3).textContent = entry.orderQuantity18;
-          row.insertCell(4).textContent = entry.salesQuantity18;
+          row.insertCell(1).textContent = entry.orderQuantity15B;
+          row.insertCell(2).textContent = entry.salesQuantity15B;
+          row.insertCell(3).textContent = entry.orderQuantity18B;
+          row.insertCell(4).textContent = entry.salesQuantity18B;
           row.insertCell(5).textContent = entry.orderQuantity4x10;
           row.insertCell(6).textContent = entry.salesQuantity4x10;
-          row.insertCell(7).textContent = runningTotals.totalOrders15;
-          row.insertCell(8).textContent = runningTotals.totalSales15;
-          row.insertCell(9).textContent = runningTotals.totalOrders18;
-          row.insertCell(10).textContent = runningTotals.totalSales18;
+          row.insertCell(7).textContent = runningTotals.totalOrders15B;
+          row.insertCell(8).textContent = runningTotals.totalSales15B;
+          row.insertCell(9).textContent = runningTotals.totalOrders18B;
+          row.insertCell(10).textContent = runningTotals.totalSales18B;
           row.insertCell(11).textContent = runningTotals.totalOrders4x10;
           row.insertCell(12).textContent = runningTotals.totalSales4x10;
         });
@@ -420,14 +420,14 @@
 
         // 为每个产品创建混合图表
         createMixedChartForProduct(
-          'chart-15',
-          '15',
+          'chart-15B',
+          '15B',
           'rgb(75, 192, 192)',
           'rgb(153, 102, 255)'
         );
         createMixedChartForProduct(
-          'chart-18',
-          '18',
+          'chart-18B',
+          '18B',
           'rgb(255, 206, 86)',
           'rgb(255, 99, 132)'
         );
