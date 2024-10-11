@@ -1,444 +1,336 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>多产品销售数据记录</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      canvas {
-        min-width: 200px; /* 或者任何你认为合适的最小宽度 */
-      }
-      body {
-        font-family: Arial, sans-serif;
-      }
-      table {
-        width: 100%; /* 表格宽度设为100% */
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        border: 1px solid black;
-        padding: 5px;
-        text-align: center;
-      }
-
-      /* 表格头部悬浮样式 */
-      th.sticky {
-        position: sticky;
-        top: 0; /* 表头距离页面顶部的距离 */
-        background-color: #f1f1f1; /* 表头背景色 */
-        z-index: 10; /* 确保表头在内容上方 */
-      }
-      th:nth-child(9),
-      th:nth-child(11),
-      th:nth-child(13) {
-        color: #ff0000; /* 这里设置你想要的颜色，例如红色 */
-      }
-
-      /* 确保表格的tbody和thead具有相同的字体和边距 */
-      thead,
-      tbody,
-      tfoot,
-      tr,
-      td,
-      th {
-        vertical-align: top;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>产品销售数据输入</h2>
-    <form id="dataForm">
-      日期: <input type="date" id="date" /><br />
-      15寸订单量: <input type="number" id="product15OrderQty" /> 销售数:
-      <input type="number" id="product15SalesQty" /><br />
-      18寸订单量: <input type="number" id="product18OrderQty" /> 销售数:
-      <input type="number" id="product18SalesQty" /><br />
-      4x10订单量: <input type="number" id="product4x10OrderQty" /> 销售数:
-      <input type="number" id="product4x10SalesQty" /><br />
-      <button type="button" onclick="addData()">添加数据</button>
-    </form>
-
-    <button onclick="clearAllData()">清除所有数据</button>
-    <button onclick="exportData()">下载保存</button>
-    <button onclick="loadSalesData()">导入数据</button>
-    <button onclick="createCharts()">绘图</button>
-
-    <h2>产品销售数据表格</h2>
-    <table id="data-table">
-      <thead>
-        <tr>
-          <th class="sticky">日期</th>
-          <th class="sticky">15寸订单量</th>
-          <th class="sticky">15寸销售数</th>
-          <th class="sticky">18寸订单量</th>
-          <th class="sticky">18寸销售数</th>
-          <th class="sticky">4x10订单量</th>
-          <th class="sticky">4x10销售数</th>
-          <th class="sticky">15寸订单总量</th>
-          <th class="sticky">15寸销售总数</th>
-          <th class="sticky">18寸订单总量</th>
-          <th class="sticky">18寸销售总数</th>
-          <th class="sticky">4x10订单总量</th>
-          <th class="sticky">4x10销售总数</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 数据行将被动态添加到此处 -->
-      </tbody>
-    </table>
-
-    <h2>图表</h2>
-    <div style="width: 100%">
-      <canvas id="chart-15B" width="100%" height="200"></canvas>
-    </div>
-    <div style="width: 100%">
-      <canvas id="chart-18B" width="100%" height="200"></canvas>
-    </div>
-    <div style="width: 100%">
-      <canvas id="chart-4x10" width="100%" height="200"></canvas>
-    </div>
-
-    <script>
-      // 存储数据的数组
-      let salesData = [];
-
-      // 从本地文件加载销售数据
-      function loadSalesData() {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.json';
-        fileInput.onchange = function (event) {
-          const file = event.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            try {
-              const data = JSON.parse(e.target.result);
-              if (Array.isArray(data)) {
-                // 只保留订单量和销售数，删除订单总量和销售总数
-                salesData = data.map((entry) => ({
-                  date: entry.date,
-                  orderQuantity15B: entry.orderQuantity15B,
-                  salesQuantity15B: entry.salesQuantity15B,
-                  orderQuantity18B: entry.orderQuantity18B,
-                  salesQuantity18B: entry.salesQuantity18B,
-                  orderQuantity4x10: entry.orderQuantity4x10,
-                  salesQuantity4x10: entry.salesQuantity4x10,
-                  // 初始化导入的累计总数
-                  totalOrders15B: 0,
-                  totalSales15B: 0,
-                  totalOrders18B: 0,
-                  totalSales18B: 0,
-                  totalOrders4x10: 0,
-                  totalSales4x10: 0,
-                }));
-
-                updateRunningTotals(); // 更新累计总数
-                renderTable();
-              } else {
-                throw new Error('数据格式不正确，应为数组格式。');
-              }
-            } catch (error) {
-              alert(error.message);
+    
+    <head>
+        <meta charset="UTF-8">
+            <title>多产品销售数据记录</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                canvas {
+                    min-width: 200px;
+                }
+                
+                body {
+                    font-family: Arial, sans-serif;
+                }
+                
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                
+                th,
+                td {
+                    border: 1px solid black;
+                    padding: 5px;
+                    text-align: center;
+                }
+                
+                th.sticky {
+                    position: sticky;
+                    top: 0;
+                    background-color: #f1f1f1;
+                    z-index: 10;
+                }
+                
+                th:nth-child(9),
+                th:nth-child(11),
+                th:nth-child(13) {
+                    color: #ff0000;
+                }
+                
+                thead,
+                tbody,
+                tfoot,
+                tr,
+                td,
+                th {
+                    vertical-align: top;
+                }
+            </style>
+    </head>
+    
+    <body>
+        <h2>产品销售数据输入</h2>
+        <form id="dataForm">
+            日期: <input type="date" id="date" /><br />
+            15 寸订单量: <input type="number" id="product15OrderQty" /> 销售数:
+            <input type="number" id="product15SalesQty" /><br />
+            18 寸订单量: <input type="number" id="product18OrderQty" /> 销售数:
+            <input type="number" id="product18SalesQty" /><br />
+            4x10 订单量: <input type="number" id="product4x10OrderQty" /> 销售数:
+            <input type="number" id="product4x10SalesQty" /><br />
+            <button type="button" onclick="addData()">添加数据</button>
+        </form>
+        
+        <button onclick="clearAllData()">清除所有数据</button>
+        <button onclick="exportData()">下载保存</button>
+        <button onclick="loadSalesData()">导入数据</button>
+        <button onclick="createCharts()">绘图</button>
+        
+        <h2>产品销售数据表格</h2>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th class="sticky">日期</th>
+                    <th class="sticky">15 寸订单量</th>
+                    <th class="sticky">15 寸销售数</th>
+                    <th class="sticky">18 寸订单量</th>
+                    <th class="sticky">18 寸销售数</th>
+                    <th class="sticky">4x10 订单量</th>
+                    <th class="sticky">4x10 销售数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 数据行将被动态添加到此处 -->
+            </tbody>
+        </table>
+        
+        <h2>图表</h2>
+        <div style="width: 100%">
+            <canvas id="chart-15B" width="100%" height="200"></canvas>
+        </div>
+        <div style="width: 100%">
+            <canvas id="chart-18B" width="100%" height="200"></canvas>
+        </div>
+        <div style="width: 100%">
+            <canvas id="chart-4x10" width="100%" height="200"></canvas>
+        </div>
+        
+        <script>
+            // 存储数据的数组
+            let salesData = [];
+            
+            // 从本地文件加载销售数据
+            function loadSalesData() {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                fileInput.onchange = function(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (Array.isArray(data)) {
+                                salesData = data.map((entry) => ({
+                                    date: entry.date,
+                                    orderQuantity15B: entry.orderQuantity15B,
+                                    salesQuantity15B: entry.salesQuantity15B,
+                                    orderQuantity18B: entry.orderQuantity18B,
+                                    salesQuantity18B: entry.salesQuantity18B,
+                                    orderQuantity4x10: entry.orderQuantity4x10,
+                                    salesQuantity4x10: entry.salesQuantity4x10,
+                                }));
+                                renderTable();
+                            } else {
+                                throw new Error('数据格式不正确，应为数组格式。');
+                            }
+                        } catch (error) {
+                            alert(error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                fileInput.click();
             }
-          };
-          reader.readAsText(file);
-        };
-        fileInput.click(); // 触发点击以打开文件选择对话框
-      }
-
-      // 添加数据到表格
-      function addData() {
-        const date = document.getElementById('date').value;
-        const quantities = {
-          orderQuantity15B:
-            parseInt(document.getElementById('product15OrderQty').value, 10) ||
-            0,
-          salesQuantity15B:
-            parseInt(document.getElementById('product15SalesQty').value, 10) ||
-            0,
-          orderQuantity18B:
-            parseInt(document.getElementById('product18OrderQty').value, 10) ||
-            0,
-          salesQuantity18B:
-            parseInt(document.getElementById('product18SalesQty').value, 10) ||
-            0,
-          orderQuantity4x10:
-            parseInt(
-              document.getElementById('product4x10OrderQty').value,
-              10
-            ) || 0,
-          salesQuantity4x10:
-            parseInt(
-              document.getElementById('product4x10SalesQty').value,
-              10
-            ) || 0,
-        };
-
-        // 不再包含订单总量和销售总数
-        salesData.push({
-          date: date,
-          ...quantities,
-        });
-
-        updateRunningTotals(); // 更新累计总数
-
-        renderTable();
-        clearInputs();
-      }
-
-      // 清除所有数据
-      function clearAllData() {
-        salesData = [];
-        renderTable();
-        clearInputs();
-      }
-
-      // 清空输入框
-      function clearInputs() {
-        document.getElementById('date').value = '';
-        document.getElementById('product15OrderQty').value = '';
-        document.getElementById('product15SalesQty').value = '';
-        document.getElementById('product18OrderQty').value = '';
-        document.getElementById('product18SalesQty').value = '';
-        document.getElementById('product4x10OrderQty').value = '';
-        document.getElementById('product4x10SalesQty').value = '';
-      }
-
-      //更新累加的数据
-      function updateRunningTotals() {
-        let runningTotals = {
-          totalOrders15B: 0,
-          totalSales15B: 0,
-          totalOrders18B: 0,
-          totalSales18B: 0,
-          totalOrders4x10: 0,
-          totalSales4x10: 0,
-        };
-
-        salesData.forEach((entry) => {
-          runningTotals.totalOrders15B += entry.orderQuantity15B;
-          runningTotals.totalSales15B += entry.salesQuantity15B;
-          runningTotals.totalOrders18B += entry.orderQuantity18B;
-          runningTotals.totalSales18B += entry.salesQuantity18B;
-          runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
-          runningTotals.totalSales4x10 += entry.salesQuantity4x10;
-
-          // 更新到每个条目
-          entry.totalOrders15B = runningTotals.totalOrders15B;
-          entry.totalSales15B = runningTotals.totalSales15B;
-          entry.totalOrders18B = runningTotals.totalOrders18B;
-          entry.totalSales18B = runningTotals.totalSales18B;
-          entry.totalOrders4x10 = runningTotals.totalOrders4x10;
-          entry.totalSales4x10 = runningTotals.totalSales4x10;
-        });
-      }
-
-      // 渲染表格
-      function renderTable() {
-        // 获取表格的tbody元素
-        const tableBody = document
-          .getElementById('data-table')
-          .getElementsByTagName('tbody')[0];
-        // 清空现有的表格数据
-        tableBody.innerHTML = '';
-
-        // 初始化累计总数对象
-        let runningTotals = {
-          totalOrders15B: 0,
-          totalSales15B: 0,
-          totalOrders18B: 0,
-          totalSales18B: 0,
-          totalOrders4x10: 0,
-          totalSales4x10: 0,
-        };
-
-        // 遍历销售数据，计算每个产品的累计订单量和销售数
-        salesData.forEach((entry) => {
-          // 累加订单量和销售数到对应的累计总数
-          runningTotals.totalOrders15B += entry.orderQuantity15B;
-          runningTotals.totalSales15B += entry.salesQuantity15B;
-          runningTotals.totalOrders18B += entry.orderQuantity18B;
-          runningTotals.totalSales18B += entry.salesQuantity18B;
-          runningTotals.totalOrders4x10 += entry.orderQuantity4x10;
-          runningTotals.totalSales4x10 += entry.salesQuantity4x10;
-
-          // 创建新的表格行并填充数据
-          const row = tableBody.insertRow();
-          row.insertCell(0).textContent = entry.date;
-          row.insertCell(1).textContent = entry.orderQuantity15B;
-          row.insertCell(2).textContent = entry.salesQuantity15B;
-          row.insertCell(3).textContent = entry.orderQuantity18B;
-          row.insertCell(4).textContent = entry.salesQuantity18B;
-          row.insertCell(5).textContent = entry.orderQuantity4x10;
-          row.insertCell(6).textContent = entry.salesQuantity4x10;
-          row.insertCell(7).textContent = runningTotals.totalOrders15B;
-          row.insertCell(8).textContent = runningTotals.totalSales15B;
-          row.insertCell(9).textContent = runningTotals.totalOrders18B;
-          row.insertCell(10).textContent = runningTotals.totalSales18B;
-          row.insertCell(11).textContent = runningTotals.totalOrders4x10;
-          row.insertCell(12).textContent = runningTotals.totalSales4x10;
-        });
-      }
-
-      // 导出数据功能
-      function exportData() {
-        const dataStr = JSON.stringify(salesData, null, 2);
-        const blob = new Blob([dataStr], {
-          type: 'application/json;charset=utf-8',
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'sales-data.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      //绘制图表===========================
-      function createCharts() {
-        // 检查 Chart.js 是否已加载
-        if (typeof Chart === 'undefined') {
-          console.error('Chart.js 未加载，将在 1 秒后重试...');
-          setTimeout(createCharts, 1000);
-          return;
-        }
-
-        function createMixedChartForProduct(
-          chartId,
-          productLabel,
-          orderColor,
-          salesColor
-        ) {
-          const ctx = document.getElementById(chartId).getContext('2d');
-          const labels = salesData.map((entry) =>
-            new Date(entry.date).toLocaleDateString()
-          );
-          const orderTotals = salesData.map(
-            (entry) => entry[`totalOrders${productLabel}`]
-          );
-          const salesTotals = salesData.map(
-            (entry) => entry[`totalSales${productLabel}`]
-          );
-          const todayOrders = salesData.map(
-            (entry) => entry[`orderQuantity${productLabel}`]
-          );
-          const todaySales = salesData.map(
-            (entry) => entry[`salesQuantity${productLabel}`]
-          );
-
-          new Chart(ctx, {
-            type: 'bar', // 使用柱状图类型
-            data: {
-              labels: labels,
-              datasets: [
-                // 订单总量和销售总数的折线图
-                {
-                  label: `${productLabel}寸订单总量`,
-                  type: 'line',
-                  data: orderTotals,
-                  borderColor: orderColor,
-                  fill: false,
-                  yAxisID: 'y-axis-order',
-                },
-                {
-                  label: `${productLabel}寸销售总数`,
-                  type: 'line',
-                  data: salesTotals,
-                  borderColor: salesColor,
-                  fill: false,
-                  yAxisID: 'y-axis-sales',
-                },
-                // 当天订单量和销售量的柱状图
-                {
-                  label: `当天${productLabel}寸订单量`,
-                  type: 'bar',
-                  data: todayOrders,
-                  backgroundColor: orderColor,
-                  yAxisID: 'y-axis-actual',
-                },
-                {
-                  label: `当天${productLabel}寸销售量`,
-                  type: 'bar',
-                  data: todaySales,
-                  backgroundColor: salesColor,
-                  yAxisID: 'y-axis-actual',
-                },
-              ],
-            },
-            options: {
-              scales: {
-                yAxes: [
-                  {
-                    id: 'y-axis-order',
-                    type: 'linear',
-                    position: 'left',
-                    ticks: {
-                      beginAtZero: true,
-                    },
-                  },
-                  {
-                    id: 'y-axis-sales',
-                    type: 'linear',
-                    position: 'left',
-                    ticks: {
-                      beginAtZero: true,
-                    },
-                  },
-                  {
-                    id: 'y-axis-actual',
-                    type: 'linear',
-                    position: 'right',
-                    ticks: {
-                      beginAtZero: true,
-                    },
-                  },
-                ],
-                xAxes: [
-                  {
-                    display: true,
-                    title: {
-                      display: true,
-                      text: '日期',
-                    },
-                  },
-                ],
-              },
-              responsive: true,
-              maintainAspectRatio: false,
-              legend: {
-                display: true,
-                position: 'top',
-              },
-              // 可以根据需要添加其他配置项
-            },
-          });
-        }
-
-        // 为每个产品创建混合图表
-        createMixedChartForProduct(
-          'chart-15B',
-          '15B',
-          'rgb(75, 192, 192)',
-          'rgb(153, 102, 255)'
-        );
-        createMixedChartForProduct(
-          'chart-18B',
-          '18B',
-          'rgb(255, 206, 86)',
-          'rgb(255, 99, 132)'
-        );
-        createMixedChartForProduct(
-          'chart-4x10',
-          '4x10',
-          'rgb(54, 162, 235)',
-          'rgb(255, 205, 34)'
-        );
-      }
-      //====
-    </script>
-  </body>
+            
+            // 添加数据到表格
+            function addData() {
+                const date = document.getElementById('date').value;
+                const quantities = {
+                    orderQuantity15B: parseInt(document.getElementById('product15OrderQty').value, 10) || 0,
+                    salesQuantity15B: parseInt(document.getElementById('product15SalesQty').value, 10) || 0,
+                    orderQuantity18B: parseInt(document.getElementById('product18OrderQty').value, 10) || 0,
+                    salesQuantity18B: parseInt(document.getElementById('product18SalesQty').value, 10) || 0,
+                    orderQuantity4x10: parseInt(document.getElementById('product4x10OrderQty').value, 10) || 0,
+                    salesQuantity4x10: parseInt(document.getElementById('product4x10SalesQty').value, 10) || 0,
+                };
+                
+                salesData.push({
+                    date: date,
+                    ...quantities,
+                });
+                
+                renderTable();
+                clearInputs();
+            }
+            
+            // 清除所有数据
+            function clearAllData() {
+                salesData = [];
+                renderTable();
+                clearInputs();
+            }
+            
+            // 清空输入框
+            function clearInputs() {
+                document.getElementById('date').value = '';
+                document.getElementById('product15OrderQty').value = '';
+                document.getElementById('product15SalesQty').value = '';
+                document.getElementById('product18OrderQty').value = '';
+                document.getElementById('product18SalesQty').value = '';
+                document.getElementById('product4x10OrderQty').value = '';
+                document.getElementById('product4x10SalesQty').value = '';
+            }
+            
+            // 渲染表格
+            function renderTable() {
+                const tableBody = document.getElementById('data-table').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = '';
+                
+                salesData.forEach((entry) => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).textContent = entry.date;
+                    row.insertCell(1).textContent = entry.orderQuantity15B;
+                    row.insertCell(2).textContent = entry.salesQuantity15B;
+                    row.insertCell(3).textContent = entry.orderQuantity18B;
+                    row.insertCell(4).textContent = entry.salesQuantity18B;
+                    row.insertCell(5).textContent = entry.orderQuantity4x10;
+                    row.insertCell(6).textContent = entry.salesQuantity4x10;
+                });
+            }
+            
+            // 导出数据功能
+            function exportData() {
+                const dataWithoutTotals = salesData.map((entry) => ({
+                    date: entry.date,
+                    orderQuantity15B: entry.orderQuantity15B,
+                    salesQuantity15B: entry.salesQuantity15B,
+                    orderQuantity18B: entry.orderQuantity18B,
+                    salesQuantity18B: entry.salesQuantity18B,
+                    orderQuantity4x10: entry.orderQuantity4x10,
+                    salesQuantity4x10: entry.salesQuantity4x10,
+                }));
+                const dataStr = JSON.stringify(dataWithoutTotals, null, 2);
+                const blob = new Blob([dataStr], {
+                    type: 'application/json;charset=utf-8'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sales-data.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            
+            // 绘制图表
+            function createCharts() {
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js 未加载，将在 1 秒后重试...');
+                    setTimeout(createCharts, 1000);
+                    return;
+                }
+                
+                function createMixedChartForProduct(chartId, productLabel, orderColor, salesColor) {
+                    const ctx = document.getElementById(chartId).getContext('2d');
+                    const labels = salesData.map((entry) => new Date(entry.date).toLocaleDateString());
+                    let runningTotals = {
+                        totalOrders: 0,
+                        totalSales: 0,
+                    };
+                    const orderTotals = salesData.map((entry) => {
+                        runningTotals.totalOrders += entry[`orderQuantity${productLabel}`];
+                        return runningTotals.totalOrders;
+                    });
+                    const salesTotals = salesData.map((entry) => {
+                        runningTotals.totalSales += entry[`salesQuantity${productLabel}`];
+                        return runningTotals.totalSales;
+                    });
+                    const todayOrders = salesData.map((entry) => entry[`orderQuantity${productLabel}`]);
+                    const todaySales = salesData.map((entry) => entry[`salesQuantity${productLabel}`]);
+                    
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: `${productLabel}寸订单总量`,
+                                type: 'line',
+                                data: orderTotals,
+                                borderColor: orderColor,
+                                fill: false,
+                                yAxisID: 'y-axis-order',
+                            },
+                                       {
+                                label: `${productLabel}寸销售总数`,
+                                type: 'line',
+                                data: salesTotals,
+                                borderColor: salesColor,
+                                fill: false,
+                                yAxisID: 'y-axis-sales',
+                            },
+                                       {
+                                label: `当天${productLabel}寸订单量`,
+                                type: 'bar',
+                                data: todayOrders,
+                                backgroundColor: orderColor,
+                                yAxisID: 'y-axis-actual',
+                            },
+                                       {
+                                label: `当天${productLabel}寸销售量`,
+                                type: 'bar',
+                                data: todaySales,
+                                backgroundColor: salesColor,
+                                yAxisID: 'y-axis-actual',
+                            },
+                                       ],
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    id: 'y-axis-order',
+                                    type: 'linear',
+                                    position: 'left',
+                                    ticks: {
+                                        beginAtZero: true,
+                                    },
+                                },
+                                        {
+                                    id: 'y-axis-sales',
+                                    type: 'linear',
+                                    position: 'left',
+                                    ticks: {
+                                        beginAtZero: true,
+                                    },
+                                },
+                                        {
+                                    id: 'y-axis-actual',
+                                    type: 'linear',
+                                    position: 'right',
+                                    ticks: {
+                                        beginAtZero: true,
+                                    },
+                                },
+                                        ],
+                                        xAxes: [{
+                                            display: true,
+                                            title: {
+                                                display: true,
+                                                text: '日期',
+                                            },
+                                        }, ],
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            },
+                        },
+                    });
+                }
+                
+                createMixedChartForProduct('chart-15B', '15B', 'rgb(75, 192, 192)', 'rgb(153, 102, 255)');
+                createMixedChartForProduct('chart-18B', '18B', 'rgb(255, 206, 86)', 'rgb(255, 99, 132)');
+                createMixedChartForProduct('chart-4x10', '4x10', 'rgb(54, 162, 235)', 'rgb(255, 205, 34)');
+            }
+        </script>
+    </body>
+    
 </html>
